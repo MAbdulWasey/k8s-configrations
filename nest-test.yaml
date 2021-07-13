@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dockwithnest
+  labels:
+    app: dockwithnest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dockwithnest
+  template:
+    metadata:
+      labels:
+        app: dockwithnest
+    spec:
+      containers:
+      - name: dockwithnest
+        image: mabdulwasey/dockwithnest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_user
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: posg-root-username
+        - name: DB_pass
+          valueFrom: 
+            secretKeyRef:
+              name: postgres-secret
+              key: posg-root-password
+        - name: DB_host
+          valueFrom: 
+            configMapKeyRef:
+              name: postgres-configmap
+              key: database_url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dockwithnest-service
+spec:
+  selector:
+    app: dockwithnest
+  type: LoadBalancer  
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30000
